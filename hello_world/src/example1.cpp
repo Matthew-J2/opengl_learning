@@ -29,11 +29,14 @@ void processInput(GLFWwindow *window)
 
 int main(){
 	std::cout << "Hello\n";
+
+	// Initialize and configure GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
+	// Create a window with GLFW
 	GLFWwindow* window = glfwCreateWindow(800,600,"Sevy Window", NULL, NULL);
 	if (window == NULL){
 		std::cout << "Could not make a GLFW window";
@@ -41,23 +44,24 @@ int main(){
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-
+ 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-	
+	// Set viewport
 	glViewport(0, 0, 800, 600);
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+	
+	// Triangle coords
 	float vertices[] = {
 		-0.5f, -0.5f, 0.0f,
 		0.5f, -0.5f, 0.0f,
 		0.0f,  0.5f, 0.0f
 	};
 
-
+	// Vertex and fragment shader
 	unsigned int vertexShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
@@ -72,6 +76,7 @@ int main(){
 	unsigned int shaderProgram;
 	shaderProgram = glCreateProgram();
 
+	// Link both shaders then delete the individual shader objects
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
@@ -85,7 +90,7 @@ int main(){
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);  
 
-
+	// VAO and VBO initialized to store vertex attribute settings and hold raw vertex data on GPU
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
 	unsigned int VBO;
@@ -94,7 +99,8 @@ int main(){
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
+	
+	// Tell OpenGL how to interpret buffer
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	
