@@ -22,6 +22,17 @@ const char *vertexShaderSource1 =
       "vertexColor = vec4(0.0, 0.0, 1.0, 1.0);\n"
     "}\0";
 
+const char *vertexShaderSource2 =
+    "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "layout (location = 1) in vec3 aColor;\n"
+    "out vec4 vertexColor;\n"
+    "void main()\n"
+    "{\n"
+      "gl_Position = vec4(aPos, 1.0);\n"
+      "vertexColor = vec4(aColor, 1.0);\n"
+    "}\0";
+
 const char *fragmentShaderSource0 =
     "#version 330 core\n"
     "out vec4 FragColor;\n"
@@ -53,6 +64,16 @@ const char *fragmentShaderSource3 = "#version 330 core\n"
   "{\n"
     "FragColor = vertexColor;\n"
   "}\0";
+
+
+const char *fragmentShaderSource4 = "#version 330 core\n"
+  "out vec4 FragColor;\n"
+  "in vec4 vertexColor;\n"
+  "void main()\n"
+  "{\n"
+    "FragColor = vertexColor;\n"
+  "}\0";
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
@@ -168,11 +189,19 @@ int main() {
       -0.2f, -0.2f, 0.0f, // left
       -0.4f, -0.2f, 0.0f, // right
   };
+  float vertices4[] = {
+      0.0f, 0.4f, 0.0f, 1.0f, 0.0f, 0.0f, // top
+      -0.4f, -0.45f, 0.0f, 0.0f, 1.0f, 0.0f, // left
+      0.4f, -0.45f, 0.0f, 0.0f, 0.0f, 1.0f, // right
+  };
   // Vertex shaders
   unsigned int vertexShader0 = glCreateShader(GL_VERTEX_SHADER);
   createShader(&vertexShader0, &vertexShaderSource0, "vertex0");
   unsigned int vertexShader1 = glCreateShader(GL_VERTEX_SHADER);
   createShader(&vertexShader1, &vertexShaderSource1, "vertex1");
+  unsigned int vertexShader2 = glCreateShader(GL_VERTEX_SHADER);
+  createShader(&vertexShader2, &vertexShaderSource2, "vertex2");
+
 
   // Fragment shaders
   unsigned int fragmentShader0 = glCreateShader(GL_FRAGMENT_SHADER);
@@ -183,7 +212,8 @@ int main() {
   createShader(&fragmentShader2, &fragmentShaderSource2, "frag2");
   unsigned int fragmentShader3 = glCreateShader(GL_FRAGMENT_SHADER);
   createShader(&fragmentShader3, &fragmentShaderSource3, "frag3");
-
+  unsigned int fragmentShader4 = glCreateShader(GL_FRAGMENT_SHADER);
+  createShader(&fragmentShader4, &fragmentShaderSource4, "frag4");
 
   // Link shaders then delete the individual shader objects once linked.
   // Use shader program.
@@ -199,15 +229,21 @@ int main() {
   unsigned int shaderProgram3 = glCreateProgram();
   createVertexFragProgram(shaderProgram3, vertexShader0, fragmentShader3, "prog3");
 
+  unsigned int shaderProgram4 = glCreateProgram();
+  createVertexFragProgram(shaderProgram4, vertexShader2, fragmentShader4, "prog4");
+
   glDeleteShader(vertexShader0);
   glDeleteShader(fragmentShader0);
   glDeleteShader(fragmentShader1);
   glDeleteShader(vertexShader1);
+  glDeleteShader(vertexShader2);
   glDeleteShader(fragmentShader2);
+  glDeleteShader(fragmentShader3);
+  glDeleteShader(fragmentShader4);
 
 
   // Create names for VAO VBO, generate buffers in context
-  unsigned int VBO0, VAO0, VBO1, VAO1, VBO2, VAO2, VBO3, VAO3;
+  unsigned int VBO0, VAO0, VBO1, VAO1, VBO2, VAO2, VBO3, VAO3, VBO4, VAO4;
   loadTriangle(VAO0, VBO0, vertices0, 3);
   // Unbind
   // glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -215,6 +251,24 @@ int main() {
   loadTriangle(VAO1, VBO1, vertices1, 3);
   loadTriangle(VAO2, VBO2, vertices2, 3);
   loadTriangle(VAO3, VBO3, vertices3, 3);
+
+      // Create objects
+  glGenVertexArrays(1, &VAO4);
+  glGenBuffers(1, &VBO4);
+
+  // Bind VAO then VBO
+  glBindVertexArray(VAO4);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO4);
+
+  // Upload data
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices4), vertices4, GL_STATIC_DRAW);
+
+  // position attribute
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  // color attribute
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
 
   // Unbind
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -237,6 +291,9 @@ int main() {
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glUseProgram(shaderProgram2);
     glBindVertexArray(VAO2);
+    glDrawArrays(GL_TRIANGLES, 0, 3); 
+    glUseProgram(shaderProgram4);
+    glBindVertexArray(VAO4);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glUseProgram(shaderProgram3);
     glUniform4f(vertexColorLocation, purpleValue, 0.0f, purpleValue, 1.0f);
