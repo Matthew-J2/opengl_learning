@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <iostream>
+#include <math.h>
 
 #include <GLFW/glfw3.h>
 
@@ -45,6 +46,13 @@ const char *fragmentShaderSource2 = "#version 330 core\n"
     "FragColor = vertexColor;\n"
   "}\0";
 
+const char *fragmentShaderSource3 = "#version 330 core\n"
+  "out vec4 FragColor;\n"
+  "uniform vec4 vertexColor;\n"
+  "void main()\n"
+  "{\n"
+    "FragColor = vertexColor;\n"
+  "}\0";
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
@@ -155,6 +163,11 @@ int main() {
       0.4f, 0.2f, 0.0f, // right
   };
 
+  float vertices3[] = {
+      -0.3f, -0.4f, 0.0f, // top
+      -0.2f, -0.2f, 0.0f, // left
+      -0.4f, -0.2f, 0.0f, // right
+  };
   // Vertex shaders
   unsigned int vertexShader0 = glCreateShader(GL_VERTEX_SHADER);
   createShader(&vertexShader0, &vertexShaderSource0, "vertex0");
@@ -168,6 +181,9 @@ int main() {
   createShader(&fragmentShader1, &fragmentShaderSource1, "frag1");
   unsigned int fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
   createShader(&fragmentShader2, &fragmentShaderSource2, "frag2");
+  unsigned int fragmentShader3 = glCreateShader(GL_FRAGMENT_SHADER);
+  createShader(&fragmentShader3, &fragmentShaderSource3, "frag3");
+
 
   // Link shaders then delete the individual shader objects once linked.
   // Use shader program.
@@ -180,20 +196,25 @@ int main() {
   unsigned int shaderProgram2 = glCreateProgram();
   createVertexFragProgram(shaderProgram2, vertexShader1, fragmentShader2, "prog2");
 
+  unsigned int shaderProgram3 = glCreateProgram();
+  createVertexFragProgram(shaderProgram3, vertexShader0, fragmentShader3, "prog3");
+
   glDeleteShader(vertexShader0);
   glDeleteShader(fragmentShader0);
   glDeleteShader(fragmentShader1);
   glDeleteShader(vertexShader1);
   glDeleteShader(fragmentShader2);
 
+
   // Create names for VAO VBO, generate buffers in context
-  unsigned int VBO0, VAO0, VBO1, VAO1, VBO2, VAO2;
+  unsigned int VBO0, VAO0, VBO1, VAO1, VBO2, VAO2, VBO3, VAO3;
   loadTriangle(VAO0, VBO0, vertices0, 3);
   // Unbind
   // glBindBuffer(GL_ARRAY_BUFFER, 0);
   // glBindVertexArray(0);
   loadTriangle(VAO1, VBO1, vertices1, 3);
   loadTriangle(VAO2, VBO2, vertices2, 3);
+  loadTriangle(VAO3, VBO3, vertices3, 3);
 
   // Unbind
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -204,6 +225,9 @@ int main() {
     glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    float timeValue = glfwGetTime();
+    float purpleValue = sin(timeValue) / 2.0f + 0.5f;
+    int vertexColorLocation = glGetUniformLocation(shaderProgram3, "vertexColor");
     // Draw 2 triangles via the shader program and VAO
     glUseProgram(shaderProgram0);
     glBindVertexArray(VAO0);
@@ -213,6 +237,10 @@ int main() {
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glUseProgram(shaderProgram2);
     glBindVertexArray(VAO2);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glUseProgram(shaderProgram3);
+    glUniform4f(vertexColorLocation, purpleValue, 0.0f, purpleValue, 1.0f);
+    glBindVertexArray(VAO3);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glfwSwapBuffers(window);
     glfwPollEvents();
